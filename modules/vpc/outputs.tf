@@ -33,3 +33,6 @@ output "private_subnet_ids" {
     value = aws_subnet.epam_private_subnet.*.id
 }
 
+output "db_subnet_ids" {
+    value = aws_subnet.epam_db_subnet.*.id
+}

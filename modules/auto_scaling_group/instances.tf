@@ -5,17 +5,17 @@
 data "template_file" "user_data" {
   template = <<EOF
     #!/bin/bash
-    sudo yum update -y
-    sudo yum install httpd -y
-    sudo systemctl start httpd
-    sudo systemctl enable httpd
-    echo "<html><h1>Hello! I am $(hostname -f)</h1></html>" | sudo tee /var/www/html/index.html
+    sudo amazon-linux-extras install nginx1
+    sudo yum install nginx -y
+    sudo systemctl start nginx
 
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o  "awscliv2.zip"
     unzip awscliv2.zip
     sudo ./aws/install --bin-dir /usr/bin --install-dir /usr/bin/aws-cli --update
   EOF
 }
+
+
 
 #--------------------------------------------------------------------------------
 #Public launch template
@@ -71,7 +71,7 @@ resource "aws_launch_template" "epam_private_launch_template" {
   name          = var.private_launch_template_name
   image_id      = var.private_instance_ami
   instance_type = var.private_instance_type
-  user_data 	= base64encode(data.template_file.user_data.rendered)
+  user_data 	  = base64encode(data.template_file.user_data.rendered)
   key_name      = aws_key_pair.private_subnet_key.id
 
   network_interfaces {
@@ -121,8 +121,8 @@ resource "aws_instance" "epam_bastion_host" {
   key_name          = aws_key_pair.bastion_host_key.id
   subnet_id         = var.bastion_subnet_id
   security_groups   = var.bastion_security_group_id
-
   associate_public_ip_address = true
+  
   provisioner "file" {
     source      = "../support_files/private_instance_key.pem"
     destination = "/home/ec2-user/private_instance_key.pem"

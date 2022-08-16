@@ -20,8 +20,8 @@ variable "vpc_name" {
 }
 
 #--------------------------------------------------------------------------------
-#AZs for public and private subnets
-#----------------------------------
+#AZs for public, private and DB subnets
+#--------------------------------------
 
 variable "subnet_az" {
   type          = list(string)
@@ -35,7 +35,7 @@ variable "subnet_az" {
 
 variable "public_subnet_cidr" {
   type          = list(string)
-  default       = ["10.0.1.0/24", "10.0.2.0/24"]
+  default       = ["10.0.1.0/24"]
   description   = "public subnet CIDR"
 }
 
@@ -45,13 +45,14 @@ variable "public_subnet_name" {
   description   = "public subnet name"
 }
 
+
 #----------------------------------------------------------------------------------
 #Private subnet
 #--------------
 
 variable "private_subnet_cidr" {
   type          = list(string)
-  default       = ["10.0.3.0/24", "10.0.4.0/24"]
+  default       = ["10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24", "10.0.5.0/24"]
   description   = "private subnet CIDR"
 }
 
@@ -59,4 +60,20 @@ variable "private_subnet_name" {
   type          = string
   default       = "My private subnet"
   description   = "private subnet name"
+}
+
+#----------------------------------------------------------------------------------
+#DB subnet
+#---------
+
+variable "db_subnet_cidr" {
+  type          = list(string)
+  default       = ["10.0.6.0/24", "10.0.7.0/24"]
+  description   = "DB subnet CIDR"
+}
+
+variable "db_subnet_name" {
+  type          = string
+  default       = "My DB subnet"
+  description   = "DB subnet name"
 }

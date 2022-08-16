@@ -47,3 +47,18 @@ resource "aws_subnet" "epam_private_subnet" {
     Name = "${var.private_subnet_name} - ${element(var.subnet_az, count.index)}"
   }
 }
+
+#----------------------------------------------------------------------------------
+#DB subnet
+#---------
+
+resource "aws_subnet" "epam_db_subnet" {
+  vpc_id            = aws_vpc.epam_vpc.id
+  count             = length(var.db_subnet_cidr)
+  cidr_block        = element(var.db_subnet_cidr, count.index)
+  availability_zone = element(var.subnet_az, count.index)
+
+  tags = {
+    Name = "${var.db_subnet_name} - ${element(var.subnet_az, count.index)}"
+  }
+}

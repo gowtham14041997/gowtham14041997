@@ -10,10 +10,13 @@ module "my_vpc" {
   vpc_cidr              = "10.0.0.0/16"
 
   #Public subnet CIDR for web-servers
-  public_subnet_cidr    = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnet_cidr    = ["10.0.1.0/24"]
 
   #Private subnet CIDR for app-servers
-  private_subnet_cidr   = ["10.0.3.0/24", "10.0.4.0/24"]
+  private_subnet_cidr   = ["10.0.2.0/24", "10.0.3.0/24", "10.0.4.0/24", "10.0.5.0/24"]
+
+  #DB subnet CIDR for mysql
+  db_subnet_cidr        = ["10.0.6.0/24", "10.0.7.0/24"]
 
   #AZs for public and private subnets
   subnet_az             = module.my_vpc.available_azs_for_subnets
@@ -48,7 +51,7 @@ module "my_security_group" {
   vpc_id                             = module.my_vpc.vpc_id
 
   #Public subnet CIDR for SSH into private instances
-  bastion_private_ip                  = module.my_auto_scaling_group.bastion_ip
+  bastion_private_ip                 = module.my_auto_scaling_group.bastion_ip
 
   #VPC CIDR block For HTTP into private instances
   private_ingress_http_cidr          = module.my_vpc.vpc_cidr
@@ -62,7 +65,7 @@ module "my_auto_scaling_group" {
   desired_instance_count      = 2
   max_instance_count          = 3
 
-  #Public instance details
+  #Public instance configuration
   public_instance_ami         = "ami-090fa75af13c156b4"
   public_instance_type        = "t2.micro"
   public_associate_public_ip  = true
@@ -72,7 +75,7 @@ module "my_auto_scaling_group" {
   public_target_group_arn     = module.my_application_load_balancers.public_target_group_arn
   public_subnet_ids           = module.my_vpc.public_subnet_ids
 
-  #Private instance details
+  #Private instance configuration
   private_instance_ami        = "ami-090fa75af13c156b4"
   private_instance_type       = "t2.micro"
   private_associate_public_ip = false
@@ -85,6 +88,19 @@ module "my_auto_scaling_group" {
   #Bastion hosts
   bastion_security_group_id   = module.my_security_group.bastion_security_group_id
   bastion_subnet_id           = module.my_vpc.public_subnet_id
+}
+
+module "my_db" {
+  source                  = "../modules/mysql"
+
+  #Subnet IDs to group for DB instances
+  db_subnet_ids           = module.my_vpc.db_subnet_ids 
+
+  #DB instance configuration
+  db_instance_count       = 2
+  db_engine               = "mysql"
+  db_instance_class       = "db.t2.micro"
+  db_security_group_ids   = module.my_security_group.private_security_group_id
 }
 
 module "my_application_load_balancers" {
@@ -118,7 +134,6 @@ module "my_s3_buckets" {
   #Public subnet CIDR to restrict private bucket access
   subnet_cidrs            = module.my_vpc.public_subnet_cidrs
 }
-
 
 #Internet-facing ALB's DNS name
 output "public_alb_dns_name" {
